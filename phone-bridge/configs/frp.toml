@@ -1,0 +1,21 @@
+# frp reverse tunnel: phone (client) dials out to a VPS (server).
+# Free and self-hosted. Docs: https://github.com/fatedier/frp
+# Server (VPS): frps -c frps.toml   |   Phone: frpc -c frpc.toml
+# Then from the PC:  ssh -p 2222 <termux-user>@vps.example.com
+
+# --- frps.toml (on the VPS) ---
+# bindPort = 7000
+# [auth]
+# token = "change-me"
+
+# --- frpc.toml (on the phone, Termux) ---
+# serverAddr = "vps.example.com"
+# serverPort = 7000
+# [auth]
+# token = "change-me"
+# [[proxies]]
+# name = "phone-ssh"
+# type = "tcp"
+# localIP = "127.0.0.1"
+# localPort = 8022
+# remotePort = 2222

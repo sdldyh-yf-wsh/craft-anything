@@ -1,0 +1,36 @@
+# Direct SSH mode: phone <-> your own PC (no GitHub relay).
+# Copy the block you need into ~/.ssh/config, then:  ssh phone
+#
+# Prerequisite on the phone (Termux):
+#   pkg install openssh && passwd && sshd   # port 8022
+#   ssh-copy-id -p 8022 <termux-user>@<phone-host>   # from the PC
+
+# --- Option A: EasyTier virtual network (recommended, free) ---
+# Phone and PC both run EasyTier with the same network-name/secret.
+# Phone virtual IP example: 10.144.144.2
+Host phone
+    HostName 10.144.144.2
+    Port 8022
+    User u0_a123            # <- replace with `whoami` on the phone
+    IdentityFile ~/.ssh/id_ed25519
+    IdentitiesOnly yes
+
+# --- Option B: frp / chisel / bore via a VPS ---
+# Phone dials out to the VPS and exposes 8022; PC ssh's to the VPS.
+Host phone-vps
+    HostName vps.example.com
+    Port 2222               # <- the port frp/chisel maps to phone:8022
+    User u0_a123
+    IdentityFile ~/.ssh/id_ed25519
+    IdentitiesOnly yes
+
+# --- Option C: Cloudflare Tunnel ---
+# Phone runs: cloudflared tunnel --url ssh://localhost:8022
+# PC connects with: cloudflared access ssh --hostname ssh.example.com
+Host phone-cf
+    HostName ssh.example.com
+    Port 22
+    User u0_a123
+    IdentityFile ~/.ssh/id_ed25519
+    IdentitiesOnly yes
+    ProxyCommand cloudflared access ssh --hostname %h
