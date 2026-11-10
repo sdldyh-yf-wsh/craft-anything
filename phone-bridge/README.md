@@ -13,6 +13,7 @@
 | 能 SSH 登录手机 | Termux `sshd`（端口 8022）+ 隧道，见 `configs/` |
 | 像 dsh-go 那样“看屏幕、帮你点” | Shizuku + rish 实现 `tap/swipe/input/screenshot`；scrcpy 做 PC 镜像 |
 | 读短信、剪贴板、电量、定位、通知 | Termux:API 一键命令 |
+| **完全解放双手（零敲命令、零碰屏幕）** | **MCP 工具直连 + 手机语音问答/通知主动上报 + Autopilot 守护 + Termux:Boot 开机自启** |
 
 ## 架构（一图看懂）
 
@@ -87,6 +88,15 @@ python3 client/phone_client.py "input:hello"
 python3 client/phone_client.py "screenshot"
 ```
 
+### 6. 完全解放双手（Hands-Free 四件套）
+
+不想每次敲 CLI、也不想伸手碰手机？直接启用免手动层（详见 [docs/handsfree.md](docs/handsfree.md)）：
+
+1. **MCP 工具直连（对话即操控）**：把 [configs/mcp.json.example](configs/mcp.json.example) 配给 Claude Code / Cursor / `craft-anything-cli`，AI 自动调用 `phone_status`、`phone_sms`、`phone_tap`、`phone_swipe`、`phone_shell` 等 12 个工具。
+2. **手机端语音免提 + 通知主动上报**：手机运行 `bash ~/phone-bridge/run-handsfree.sh`，直接开口说“电量多少 / 看看短信 / 截个图”，手机执行并语音播报；收到新通知自动转发到心跳 Issue。
+3. **沙箱端 Autopilot 守护**：运行 `AUTOPILOT_ISSUE=1 python3 client/autopilot.py`，自动盯通知，并在 Issue 看到 `task: ...` 评论时自动派发给手机并回帖。
+4. **开机零触屏自启**：`setup-termux.sh` 已写入 `~/.termux/boot/start-phone-bridge.sh`，配合免费 F-Droid 应用 **Termux:Boot**，手机重启自动拉起 `sshd` + `Agent` + `handsfree`。
+
 ## 目录结构
 
 ```
@@ -94,17 +104,21 @@ phone-bridge/
 ├── README.md                  ← 你正在看的
 ├── agent/
 │   ├── phone_agent.py         ← 手机端轮询 Agent（纯标准库）
-│   └── setup-termux.sh        ← Termux 一键安装脚本
+│   ├── handsfree.py           ← 手机端语音操控 + 通知主动上报
+│   └── setup-termux.sh        ← Termux 一键安装 + Termux:Boot 自启配置
 ├── client/
-│   ├── phone_client.py        ← 沙箱/电脑端客户端（纯标准库）
-│   └── ssh_config.example     ← 直连 SSH 配置模板
-├── configs/                   ← EasyTier / frp / chisel 配置
+│   ├── phone_client.py        ← 沙箱/电脑端 CLI 客户端（纯标准库）
+│   ├── phone_mcp.py           ← MCP stdio 服务器（12 个手机工具，对话直调）
+│   └── autopilot.py           ← 自动驾驶守护（盯通知 + Issue 评论即执行）
+├── configs/                   ← EasyTier / frp / chisel / SSH / MCP 配置模板
 ├── docs/
 │   ├── architecture.md        ← 架构 + 安全模型
+│   ├── handsfree.md           ← 完全解放双手指南（语音 / MCP / Autopilot）
 │   ├── github-projects.md     ← 用到的 GitHub 项目清单
 │   └── troubleshooting.md     ← 常见问题
 └── tests/
-    └── test_protocol.py       ← 协议单元测试（无网络）
+    ├── test_protocol.py       ← 核心协议与安全拦截单测
+    └── test_handsfree.py      ← 语音解析 / MCP / Autopilot 单测
 ```
 
 ## 测试

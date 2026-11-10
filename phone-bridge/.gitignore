@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+.env
+*.log
+.autopilot-seen.json
+.phone-agent-processed.json

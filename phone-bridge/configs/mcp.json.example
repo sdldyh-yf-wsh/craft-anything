@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "phone-bridge": {
+      "command": "python3",
+      "args": [
+        "/home/user/craft-anything/phone-bridge/client/phone_mcp.py"
+      ],
+      "env": {
+        "GH_REPO": "owner/phone-bridge",
+        "GH_TOKEN": "ghp_replace_me",
+        "DEVICE_ID": "pixel-8"
+      }
+    }
+  }
+}
